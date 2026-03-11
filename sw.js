@@ -1,4 +1,4 @@
-const CACHE_NAME = 'insulin-calculator-2026-03-10-160000';
+const CACHE_NAME = 'insulin-calculator-2026-03-10-160001';
 const urlsToCache = [
   '/insulin-calculator/',
   '/insulin-calculator/index.html',
