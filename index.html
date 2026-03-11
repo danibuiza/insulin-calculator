@@ -474,10 +474,12 @@
         .toast-container {
             position: fixed;
             bottom: 20px;
-            right: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 2000;
             display: flex;
             flex-direction: column;
+            align-items: center;
             gap: 10px;
         }
 
@@ -509,13 +511,13 @@
         }
 
         @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
         @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(100%); opacity: 0; }
         }
 
         .toast.hiding { animation: slideOut 0.3s ease forwards; }
@@ -598,24 +600,6 @@
         .food-skeleton {
             height: 60px;
             margin-bottom: 8px;
-        }
-
-        /* Sort dropdown */
-        .sort-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        .sort-select {
-            padding: 6px 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            background: var(--input-bg);
-            color: var(--text-primary);
-            font-size: 12px;
-            cursor: pointer;
         }
 
         /* Category icons */
@@ -854,46 +838,6 @@
             color: var(--text-muted);
             word-break: break-all;
             margin-bottom: 15px;
-        }
-
-        /* Barcode scanner */
-        .scanner-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 2000;
-            flex-direction: column;
-        }
-
-        .scanner-modal.show { display: flex; }
-
-        .scanner-header {
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-        }
-
-        .scanner-video {
-            flex: 1;
-            width: 100%;
-            object-fit: cover;
-        }
-
-        .scanner-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 250px;
-            height: 150px;
-            border: 3px solid #667eea;
-            border-radius: 10px;
         }
 
         /* Reminder settings */
@@ -2071,6 +2015,25 @@
             white-space: nowrap;
         }
 
+        .show-more-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0;
+            background: var(--hover-bg);
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            color: var(--primary-color);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .show-more-btn:hover {
+            background: var(--container-bg);
+        }
+
         .ke-type-toggle {
             display: flex;
             align-items: center;
@@ -2341,7 +2304,7 @@
             }
 
             .category-filters {
-                max-height: 100px;
+                max-height: 80px;
             }
 
             .food-item {
@@ -2429,17 +2392,26 @@
             }
 
             .category-filters {
-                max-height: 70px;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                overflow-y: hidden;
+                max-height: none;
                 min-height: 32px;
                 padding: 6px;
-                gap: 4px;
+                gap: 6px;
                 margin-bottom: 8px;
                 -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .category-filters::-webkit-scrollbar {
+                display: none;
             }
 
             .category-btn {
-                padding: 4px 8px;
-                font-size: 10px;
+                padding: 6px 10px;
+                font-size: 11px;
+                flex-shrink: 0;
             }
 
             .ke-type-toggle {
@@ -2539,13 +2511,9 @@
                 font-size: 9px;
             }
 
-            .category-filters {
-                max-height: 60px;
-            }
-
             .category-btn {
-                padding: 3px 6px;
-                font-size: 9px;
+                padding: 5px 8px;
+                font-size: 10px;
             }
         }
     </style>
@@ -2599,16 +2567,6 @@
             <button class="portion-add-btn" onclick="copyShareLink()">Copy Link</button>
             <button class="portion-cancel-btn" onclick="hideQrModal()" style="margin-top:10px">Close</button>
         </div>
-    </div>
-
-    <!-- Barcode Scanner Modal -->
-    <div class="scanner-modal" id="scanner-modal">
-        <div class="scanner-header">
-            <span id="scanner-title">Scan Barcode</span>
-            <button class="food-modal-close" onclick="closeScanner()" style="color:white">&times;</button>
-        </div>
-        <video class="scanner-video" id="scanner-video" autoplay playsinline></video>
-        <div class="scanner-overlay"></div>
     </div>
 
     <!-- Edit Food Modal -->
@@ -2800,31 +2758,9 @@
                             <div id="recent-searches-list"></div>
                         </div>
                     </div>
-                    <button class="find-meal-btn" onclick="openScanner()" title="Scan barcode" style="position:static;padding:10px 12px">📷</button>
                     <button class="find-meal-btn" onclick="showRecipeModal()" title="Recipe calculator" style="position:static;padding:10px 12px">🧮</button>
                 </div>
-                <div class="sort-container">
-                    <label style="font-size:12px;color:var(--text-muted)" id="sort-label">Sort:</label>
-                    <select class="sort-select" id="food-sort" onchange="sortFoods()">
-                        <option value="name" id="sort-name">Name</option>
-                        <option value="carbs-asc" id="sort-carbs-asc">Carbs ↑</option>
-                        <option value="carbs-desc" id="sort-carbs-desc">Carbs ↓</option>
-                        <option value="recent" id="sort-recent">Recent</option>
-                        <option value="popular" id="sort-popular">Popular</option>
-                    </select>
-                    <div class="ke-type-toggle" style="margin:0;flex:1;justify-content:flex-end">
-                        <label id="ke-type-label">KE:</label>
-                        <div class="ke-toggle-btns">
-                            <button type="button" class="ke-toggle-btn active" id="ke-gross-btn" onclick="setKeType('gross')">
-                                <span id="ke-gross-label">Gross</span>
-                            </button>
-                            <button type="button" class="ke-toggle-btn" id="ke-net-btn" onclick="setKeType('net')">
-                                <span id="ke-net-label">Net</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="category-filters" id="category-filters" role="toolbar" aria-label="Category filters">
+                                <div class="category-filters" id="category-filters" role="toolbar" aria-label="Category filters">
                     <!-- Category buttons will be populated by JavaScript -->
                 </div>
                 <button class="add-custom-food-btn" onclick="showCustomFoodModal()" id="add-custom-btn">
@@ -3021,6 +2957,7 @@
                 doneButton: "Done",
                 foodSearchPlaceholder: "Search foods...",
                 noFoodsFound: "No foods found",
+                showMore: "Show more",
                 allCategories: "All",
                 keTypeLabel: "KE Type:",
                 keGrossLabel: "Gross",
@@ -3130,6 +3067,7 @@
                 doneButton: "Fertig",
                 foodSearchPlaceholder: "Lebensmittel suchen...",
                 noFoodsFound: "Keine Lebensmittel gefunden",
+                showMore: "Mehr anzeigen",
                 allCategories: "Alle",
                 keTypeLabel: "KE-Typ:",
                 keGrossLabel: "Brutto",
@@ -3239,6 +3177,7 @@
                 doneButton: "Listo",
                 foodSearchPlaceholder: "Buscar alimentos...",
                 noFoodsFound: "No se encontraron alimentos",
+                showMore: "Mostrar más",
                 allCategories: "Todos",
                 keTypeLabel: "Tipo KE:",
                 keGrossLabel: "Bruto",
@@ -3348,6 +3287,7 @@
                 doneButton: "完了",
                 foodSearchPlaceholder: "食品を検索...",
                 noFoodsFound: "食品が見つかりません",
+                showMore: "もっと見る",
                 allCategories: "全て",
                 keTypeLabel: "KEタイプ:",
                 keGrossLabel: "総量",
@@ -3457,6 +3397,7 @@
                 doneButton: "完成",
                 foodSearchPlaceholder: "搜索食物...",
                 noFoodsFound: "未找到食物",
+                showMore: "显示更多",
                 allCategories: "全部",
                 keTypeLabel: "KE类型:",
                 keGrossLabel: "总量",
@@ -3680,15 +3621,8 @@
         let foodsData = null;
         let keType = 'gross'; // 'gross' or 'net'
         let selectedCategory = null; // null means all categories
-
-        function setKeType(type) {
-            keType = type;
-            document.getElementById('ke-gross-btn').classList.toggle('active', type === 'gross');
-            document.getElementById('ke-net-btn').classList.toggle('active', type === 'net');
-            // Re-render food list with new KE type
-            const query = document.getElementById('food-search').value;
-            renderFoodList(query);
-        }
+        const FOOD_RENDER_LIMIT = 50; // Initial number of items to render
+        let foodRenderLimit = FOOD_RENDER_LIMIT;
 
         async function loadFoodsData() {
             if (foodsData) return foodsData;
@@ -3752,6 +3686,9 @@
                 selectedCategory = categoryId;
             }
 
+            // Reset render limit when category changes
+            foodRenderLimit = FOOD_RENDER_LIMIT;
+
             // Update button states
             document.querySelectorAll('.category-btn').forEach(btn => {
                 const btnCategory = btn.getAttribute('data-category');
@@ -3807,9 +3744,6 @@
             document.getElementById('food-modal-title').textContent = t.foodModalTitle;
             document.getElementById('food-modal-done-btn').textContent = t.doneButton;
             document.getElementById('food-search').placeholder = t.foodSearchPlaceholder;
-            document.getElementById('ke-type-label').textContent = t.keTypeLabel;
-            document.getElementById('ke-gross-label').textContent = t.keGrossLabel;
-            document.getElementById('ke-net-label').textContent = t.keNetLabel;
             // Portion modal KE type labels
             document.getElementById('portion-ke-type-label').textContent = t.keTypeLabel;
             document.getElementById('portion-ke-gross-label').textContent = t.keGrossLabel;
@@ -4510,6 +4444,8 @@
         function filterFoodsDebounced() {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
+                // Reset render limit when search changes
+                foodRenderLimit = FOOD_RENDER_LIMIT;
                 const query = document.getElementById('food-search').value;
                 renderFoodList(query);
             }, 150);
@@ -4578,8 +4514,15 @@
             }
 
             let html = '';
+            let itemsRendered = 0;
+            let totalItems = 0;
 
-            // Show favorites first
+            // Count total items (excluding favorites and recent which always show)
+            Object.values(groupedFoods).forEach(foods => {
+                totalItems += foods.length;
+            });
+
+            // Show favorites first (always show all favorites)
             if (favoriteFoods.length > 0 && !searchTerm) {
                 html += `<div class="food-category-header">⭐ ${t.favorites || 'Favorites'}</div>`;
                 getSortedFoods(favoriteFoods).forEach(food => {
@@ -4587,7 +4530,7 @@
                 });
             }
 
-            // Show recent
+            // Show recent (always show recent, max 5)
             if (recentFoods.length > 0 && !searchTerm) {
                 html += `<div class="food-category-header">🕐 ${t.recent || 'Recent'}</div>`;
                 recentFoods.slice(0, 5).forEach(food => {
@@ -4595,16 +4538,33 @@
                 });
             }
 
-            // Show by category
+            // Show by category with pagination
             Object.keys(groupedFoods).forEach(categoryId => {
+                if (itemsRendered >= foodRenderLimit) return;
+
                 const catLabel = categories[categoryId] ? (categories[categoryId][currentLang] || categories[categoryId].en) : categoryId;
                 const catIcon = categoryIcons[categoryId] || '';
+                const sortedFoods = getSortedFoods(groupedFoods[categoryId]);
+
+                // Check if we can render any items from this category
+                const remainingSlots = foodRenderLimit - itemsRendered;
+                if (remainingSlots <= 0) return;
+
                 html += `<div class="food-category-header">${catIcon} ${catLabel}</div>`;
 
-                getSortedFoods(groupedFoods[categoryId]).forEach(food => {
-                    html += renderFoodItem(food, favorites);
+                sortedFoods.forEach(food => {
+                    if (itemsRendered < foodRenderLimit) {
+                        html += renderFoodItem(food, favorites);
+                        itemsRendered++;
+                    }
                 });
             });
+
+            // Add "Show more" button if there are more items
+            if (itemsRendered < totalItems) {
+                const remaining = totalItems - itemsRendered;
+                html += `<button class="show-more-btn" onclick="showMoreFoods()">${t.showMore || 'Show more'} (${remaining})</button>`;
+            }
 
             foodList.innerHTML = html;
         }
@@ -4636,6 +4596,12 @@
                     <button class="favorite-btn" onclick="event.stopPropagation(); showEditFoodModal('${food.id}')" aria-label="Edit food" style="color:var(--text-muted)">✏️</button>
                 </div>
             `;
+        }
+
+        function showMoreFoods() {
+            foodRenderLimit += FOOD_RENDER_LIMIT;
+            const query = document.getElementById('food-search').value;
+            renderFoodList(query);
         }
 
         // ============================================
@@ -4729,46 +4695,15 @@
         // ============================================
         // SORT FOODS
         // ============================================
-        let currentSort = 'name';
         let foodPopularity = JSON.parse(localStorage.getItem('foodPopularity') || '{}');
 
-        function sortFoods() {
-            currentSort = document.getElementById('food-sort').value;
-            renderFoodList();
-        }
-
         function getSortedFoods(foodsToSort) {
-            const recentFoods = getRecentFoods();
             const sorted = [...foodsToSort];
-
-            switch (currentSort) {
-                case 'name':
-                    sorted.sort((a, b) => {
-                        const nameA = a.name[currentLang] || a.name.en;
-                        const nameB = b.name[currentLang] || b.name.en;
-                        return nameA.localeCompare(nameB);
-                    });
-                    break;
-                case 'carbs-asc':
-                    sorted.sort((a, b) => a.carbs - b.carbs);
-                    break;
-                case 'carbs-desc':
-                    sorted.sort((a, b) => b.carbs - a.carbs);
-                    break;
-                case 'recent':
-                    sorted.sort((a, b) => {
-                        const aIndex = recentFoods.indexOf(a.id);
-                        const bIndex = recentFoods.indexOf(b.id);
-                        if (aIndex === -1 && bIndex === -1) return 0;
-                        if (aIndex === -1) return 1;
-                        if (bIndex === -1) return -1;
-                        return aIndex - bIndex;
-                    });
-                    break;
-                case 'popular':
-                    sorted.sort((a, b) => (foodPopularity[b.id] || 0) - (foodPopularity[a.id] || 0));
-                    break;
-            }
+            sorted.sort((a, b) => {
+                const nameA = a.name[currentLang] || a.name.en;
+                const nameB = b.name[currentLang] || b.name.en;
+                return nameA.localeCompare(nameB);
+            });
             return sorted;
         }
 
@@ -4949,7 +4884,7 @@
                     if (data.settings) {
                         if (data.settings.theme) document.documentElement.setAttribute('data-theme', data.settings.theme);
                         if (data.settings.language) setLanguage(data.settings.language);
-                        if (data.settings.keType) setKeType(data.settings.keType);
+                        if (data.settings.keType) keType = data.settings.keType;
                     }
                     if (data.timeFactors) {
                         Object.assign(timeFactors, data.timeFactors);
@@ -5012,38 +4947,6 @@
             navigator.clipboard.writeText(link).then(() => {
                 showToast('Link copied to clipboard');
             });
-        }
-
-        // ============================================
-        // BARCODE SCANNER
-        // ============================================
-        let scannerStream = null;
-
-        function openScanner() {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                showToast('Camera not supported on this device', 'error');
-                return;
-            }
-
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                .then(stream => {
-                    scannerStream = stream;
-                    const video = document.getElementById('scanner-video');
-                    video.srcObject = stream;
-                    document.getElementById('scanner-modal').classList.add('show');
-                    showToast('Barcode scanning is a preview feature', 'info');
-                })
-                .catch(err => {
-                    showToast('Could not access camera', 'error');
-                });
-        }
-
-        function closeScanner() {
-            if (scannerStream) {
-                scannerStream.getTracks().forEach(track => track.stop());
-                scannerStream = null;
-            }
-            document.getElementById('scanner-modal').classList.remove('show');
         }
 
         // ============================================
